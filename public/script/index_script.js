@@ -1,4 +1,6 @@
-import { $, tampilPesan, API } from './utils_script.js'
+import { $, tampilPesan, API, themeScript } from './utils_script.js'
+
+themeScript();
 
 if (localStorage.getItem('loggedIn')) {
   location.replace('/home');

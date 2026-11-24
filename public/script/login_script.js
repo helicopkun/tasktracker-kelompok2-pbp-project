@@ -1,4 +1,6 @@
-import { API, $, tampilPesan } from './utils_script.js'
+import { API, $, tampilPesan, themeScript, showLoading, hideLoading } from './utils_script.js';
+
+themeScript();
 
 const form = $('formLogin');
 const btn = form.querySelector('button[type="submit"]');
@@ -7,16 +9,19 @@ function updateButton() {
   btn.disabled = !form.checkValidity();
 }
 
-form.addEventListener('input', updateButton);   // runs on every keystroke or change
-form.addEventListener('reset', () => setTimeout(updateButton)); // after e.target.reset()
-updateButton();                                  // set the initial state on page load
+form.addEventListener('input', updateButton);
+form.addEventListener('reset', () => setTimeout(updateButton));
+updateButton();
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+  tampilPesan($('pesan'), '');
+  btn.disabled = true;
+  showLoading('Logging in...');
 
   try {
     const res = await fetch(`${API}/login`, {
-      method: 'POST', // ga nambah data baru, cuma biar ga tampil di url
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: $('username').value,
@@ -29,8 +34,10 @@ form.addEventListener('submit', async (e) => {
 
     localStorage.setItem('loggedIn', 'true');
     localStorage.setItem('username', data.username);
-    location.href = '/home';
+    location.href = '/home';   // page leaves, loader stays until then
   } catch (error) {
+    hideLoading();
+    updateButton();
     tampilPesan($('pesan'), error.message);
   }
 });

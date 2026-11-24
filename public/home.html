@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="styling/home.css">
 </head>
 <body>
+    <button id="themeToggle" class="btn btn-theme" aria-label="Toggle theme">🌙</button>
+
     Home page
     <p>Welcome, <span id="username"></span></p>
     <button id="btnLogout">Logout</button>
@@ -40,6 +42,13 @@
     </table>
     <p id="pesanData">Loading..</p>
 
+    <div id="loadingOverlay" class="loading-overlay" role="alertdialog"
+        aria-modal="true" aria-live="polite" aria-hidden="true">
+        <div class="loading-box">
+            <div class="spinner"></div>
+            <p class="loading-text" id="loadingText">Loading...</p>
+        </div>
+    </div>
     
     <script type="module" src="script/home_script.js"></script>
 </body>

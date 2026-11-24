@@ -1,15 +1,32 @@
-import { API, $, tampilPesan } from './utils_script.js'
+import { API, $, tampilPesan, themeScript, showLoading, hideLoading } from './utils_script.js'
 
-$('formRegister').addEventListener('submit', async (e) => {
-    e.preventDefault();
+themeScript();
 
-    if ($('password').value !== $('pwConfirm').value) {
-        $('pwConfirm').value = '';
-        tampilPesan($('pesan'), 'Password tidak sama!');
-        return;
-    }
+const form = $('formRegister');
+const btn = form.querySelector('button[type="submit"]');
 
-    try {
+function updateButton() {
+  btn.disabled = !form.checkValidity();
+}
+
+form.addEventListener('input', updateButton);
+form.addEventListener('reset', () => setTimeout(updateButton));
+updateButton();
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  tampilPesan($('pesan'), '');
+  btn.disabled = true;
+
+  if ($('password').value !== $('pwConfirm').value) {
+    $('pwConfirm').value = '';
+    tampilPesan($('pesan'), 'Password tidak sama!');
+
+    return;
+  }
+
+  showLoading('Registering...');
+  try {
     const res = await fetch(`${API}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -25,8 +42,10 @@ $('formRegister').addEventListener('submit', async (e) => {
     localStorage.setItem('loggedIn', 'true');
     localStorage.setItem('username', data.username);
     location.href = '/home';
-    } catch (error) {
-        tampilPesan($('pesan'), error.message);
-    }
+  } catch (error) {
+    hideLoading();
+    updateButton();
+    tampilPesan($('pesan'), error.message);
+  }
 
 });

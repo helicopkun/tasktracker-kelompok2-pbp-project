@@ -1,4 +1,6 @@
-import { API, username, $, tampilPesan, pisahWaktu } from './utils_script.js'
+import { API, username, $, tampilPesan, pisahWaktu, themeScript } from './utils_script.js'
+
+themeScript();
 
 if (!localStorage.getItem('loggedIn')) {
   location.replace('/index');

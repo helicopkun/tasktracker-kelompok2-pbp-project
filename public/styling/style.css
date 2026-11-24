@@ -1,4 +1,10 @@
-/* Global styling sheet */
+/* =====================================================================
+   TaskTracker - Global styling (design system)
+   Urutan muat:  Bootstrap  ->  style.css  ->  <halaman>.css
+   Aturan: warna, tombol, input, kartu, header, sidebar ditulis DI SINI.
+   File <halaman>.css hanya untuk tata letak khusus halaman itu.
+   ===================================================================== */
+
 :root {
     /* BACKGROUND */
     --bg-main: #151719;
@@ -24,4 +30,480 @@
     --success: #829C86;
     --warning: #C49A68;
     --danger: #BD7770;
+
+    /* TOKEN TAMBAHAN */
+    --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --ring: 0 0 0 3px rgba(177, 138, 97, 0.35);
+    --sidebar-w: 240px;
+    --topbar-h: 56px;
+}
+
+:root[data-bs-theme="light"] {
+    --bg-main: #F4F1EA;
+    --bg-sidebar: #EAE6DC;
+    --bg-card: #FBF9F4;
+    --bg-card-hover: #F0ECE2;
+
+    --text-primary: #1F2325;
+    --text-secondary: #5D6462;
+    --text-muted: #8A908E;
+
+    --accent-primary: #9A7248;
+    --accent-secondary: #6F8076;
+    --accent-soft: #B79A74;
+
+    --border: #D8D3C7;
+    --border-subtle: #E5E1D6;
+
+    --shadow: 0 8px 24px rgba(40, 35, 25, 0.15);
+    --ring: 0 0 0 3px rgba(154, 114, 72, 0.3);
+}
+
+
+/* ---------- Jembatan ke Bootstrap (komponen Bootstrap ikut tema) ---------- */
+[data-bs-theme="dark"] {
+    --bs-body-bg: var(--bg-main);
+    --bs-body-color: var(--text-primary);
+    --bs-emphasis-color: var(--text-primary);
+    --bs-secondary-color: var(--text-secondary);
+    --bs-border-color: var(--border);
+}
+
+/* ---------- Dasar ---------- */
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+a { color: var(--accent-soft); }
+a:hover { color: var(--text-primary); }
+
+::selection {
+    background: var(--accent-primary);
+    color: var(--bg-main);
+}
+
+:focus-visible {
+    outline: 2px solid var(--accent-soft);
+    outline-offset: 2px;
+}
+
+/* ---------- LOADING LIGHTBOX ---------- */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 12, 13, 0.6);
+    backdrop-filter: blur(3px);
+
+    /* hidden by default: invisible AND not clickable */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* only enabled once JS adds this class */
+.loading-overlay.is-active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.loading-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    min-width: 200px;
+    padding: 28px 36px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    transform: translateY(8px) scale(0.98);
+    transition: transform 0.2s ease;
+}
+
+.loading-overlay.is-active .loading-box {
+    transform: translateY(0) scale(1);
+}
+
+.spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* stop page scrolling while loading */
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* ---------- Tombol ---------- */
+/* Pakai bersama kelas Bootstrap:  class="btn btn-accent" */
+
+/* Utama: satu aksi terpenting per layar */
+.btn {
+    padding: 8px 16px;
+    font: inherit;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:hover {
+    background: var(--bg-card-hover);
+}
+
+.btn:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+}
+
+.btn-primary {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: #151719;
+}
+
+.btn-primary:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent-soft);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 2s; }
+    .loading-overlay, .loading-box { transition: none; }
+}
+
+.btn-accent {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: var(--bg-main);
+    font-weight: 600;
+}
+.btn-accent:hover,
+.btn-accent:focus-visible,
+.btn-accent:active {
+    background-color: var(--accent-soft);
+    border-color: var(--accent-soft);
+    color: var(--bg-main);
+}
+
+/* Sekunder: garis tepi saja */
+.btn-quiet {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.btn-quiet:hover,
+.btn-quiet:focus-visible,
+.btn-quiet:active {
+    background-color: var(--bg-card-hover);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+/* Ghost: tanpa garis, untuk aksi ringan (ikon, "Batal") */
+.btn-ghost {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-secondary);
+}
+.btn-ghost:hover,
+.btn-ghost:focus-visible {
+    background-color: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+/* Hapus / aksi berbahaya */
+.btn-delete {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+}
+.btn-delete:hover,
+.btn-delete:focus-visible,
+.btn-delete:active {
+    background-color: var(--danger);
+    border-color: var(--danger);
+    color: var(--bg-main);
+}
+
+.btn.btn-theme {
+    height: 50px;
+}
+
+/* ---------- Form ---------- */
+.form-label {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.form-control,
+.form-select {
+    background-color: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+}
+.form-control::placeholder { color: var(--text-muted); }
+.form-control:focus,
+.form-select:focus {
+    background-color: var(--bg-main);
+    border-color: var(--accent-primary);
+    box-shadow: var(--ring);
+    color: var(--text-primary);
+}
+
+/* Chrome mengisi otomatis dengan latar putih; paksa ikut tema */
+.form-control:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-main) inset;
+    -webkit-text-fill-color: var(--text-primary);
+    caret-color: var(--text-primary);
+}
+
+.form-text { color: var(--text-muted); }
+
+/* Pesan error/sukses (#pesan). Kosong = otomatis tersembunyi */
+.form-message {
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 1rem;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+}
+.form-message.is-success {
+    color: var(--success);
+    background: color-mix(in srgb, var(--success) 14%, transparent);
+    border-color: color-mix(in srgb, var(--success) 45%, transparent);
+}
+.form-message:empty { display: none; }
+
+/* ---------- Kartu / permukaan ---------- */
+.card-surface {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+}
+.card-surface.is-interactive { transition: background-color 0.15s ease; }
+.card-surface.is-interactive:hover { background-color: var(--bg-card-hover); }
+
+/* ---------- Badge status ---------- */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-card-hover);
+}
+.badge-status.is-success { color: var(--success); background: color-mix(in srgb, var(--success) 16%, transparent); }
+.badge-status.is-warning { color: var(--warning); background: color-mix(in srgb, var(--warning) 16%, transparent); }
+.badge-status.is-danger  { color: var(--danger);  background: color-mix(in srgb, var(--danger) 16%, transparent); }
+
+/* ---------- Tabel (kelas "table" Bootstrap) ---------- */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary);
+    --bs-table-border-color: var(--border);
+    --bs-table-hover-bg: var(--bg-card-hover);
+    --bs-table-hover-color: var(--text-primary);
+}
+.table th {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ---------- Header (index.html dan home.html) ---------- */
+.site-header {
+    background-color: var(--bg-sidebar);
+    border-bottom: 1px solid var(--border);
+}
+.site-header .navbar-brand {
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+.site-header .navbar-nav { flex-wrap: nowrap; }
+.site-header .nav-link {
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+.site-header .nav-link:hover,
+.site-header .nav-link:focus-visible,
+.site-header .nav-link.active { color: var(--text-primary); }
+.site-header .nav-user {
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+@media (max-width: 575.98px) {
+    .site-header .navbar-brand { font-size: 1.1rem; margin-right: 0.5rem; }
+    .site-header .nav-link { padding-left: 0.25rem; padding-right: 0.25rem; }
+    .site-header .btn { padding: 0.35rem 0.75rem; font-size: 0.9rem; }
+}
+
+/* ---------- Layout aplikasi ala ClickUp: navigasi kiri, konten kanan ----------
+   <div class="app-shell">
+     <aside class="sidebar"> ...  <a class="sidebar-link active">  </aside>
+     <div class="app-main">
+       <header class="topbar"> ... </header>
+       <main class="app-content"> ... </main>
+     </div>
+   </div>
+------------------------------------------------------------------------ */
+.app-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 0.75rem;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.25rem 0.75rem 1rem;
+    color: var(--text-primary);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.sidebar-section {
+    padding: 0.9rem 0.75rem 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sidebar-link:hover {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+.sidebar-link.active {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: inset 3px 0 0 var(--accent-primary);
+}
+
+.app-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    height: var(--topbar-h);
+    padding: 0 1.5rem;
+    background-color: var(--bg-main);
+    border-bottom: 1px solid var(--border);
+}
+
+.app-content {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+/* Layar kecil: sidebar menjadi bilah horizontal di atas */
+@media (max-width: 767.98px) {
+    .app-shell { grid-template-columns: minmax(0, 1fr); }
+    .sidebar {
+        position: static;
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+        padding: 0.5rem 0.75rem;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+    }
+    .sidebar-brand { padding: 0.25rem 0.5rem; }
+    .sidebar-section { display: none; }
+    .sidebar-link { white-space: nowrap; }
+    .app-content { padding: 1rem; }
 }
