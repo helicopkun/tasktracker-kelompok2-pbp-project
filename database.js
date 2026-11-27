@@ -6,7 +6,7 @@ const pool = new Pool({
   ssl: {
     rejectUnauthorized: false, // Required for Supabase hosted connections
   },
-  max: 1
+  max: 3
 });
 
 module.exports = pool;

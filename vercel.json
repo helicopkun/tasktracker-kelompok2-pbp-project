@@ -15,5 +15,8 @@
     { "src": "/script/(.*)", "dest": "/public/script/$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "index.js" }
-  ]
+  ],
+
+  "regions": ["sin1"]
+
 }
