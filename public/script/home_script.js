@@ -75,28 +75,6 @@ function displayTeamTABLE(data) {
 
 
 
-const modal = $('taskModal');
-
-modal.addEventListener('show.bs.modal', async (e) => {
-  const card = e.relatedTarget;
-  modal.querySelector('#taskName').textContent = card.dataset.taskName;
-
-  const data = await loadTaskDetail(card.dataset.taskId);
-  const taskDetails = modal.querySelector('#taskDetails');
-  taskDetails.replaceChildren();
-  data.forEach(d => {
-    const p = document.createElement('p');
-    if (d.done) {
-    p.style.color = 'var(--success)';
-    p.textContent = `${d.name} \u2714`;
-  } else {
-    p.style.color = 'var(--warning)';
-    p.textContent = d.name;
-  }
-    taskDetails.appendChild(p);
-  });
-});
-
 const modes = ['all', 'personal', 'team'];
 const labels = { all: 'All', personal: 'Personal', team: 'Teams' };
 let modeIndex = 0;
@@ -135,12 +113,6 @@ async function loadTasks(mode = 'all') {
   }
 }
 
-async function loadTaskDetail(taskId) {
-  const res = await fetch(`${API}/tasks/${taskId}/details`)
-  const data = await res.json();
-  return data;
-}
-
 function displayTask(data) {
   const taskContainer = $('taskContainer');
 
@@ -170,4 +142,55 @@ function displayTask(data) {
   });
     taskContainer.replaceChildren(...cards);
 }
+
+const modal = $('taskModal');
+const detailCache = new Map();
+let detailReq = 0;
+
+function renderDetails(body, data) {
+  if (data.length === 0) {
+    body.textContent = 'Belum ada detail';
+    return;
+  }
+  const items = data.map(d => {
+    const p = document.createElement('p');
+    p.style.color = d.done ? 'var(--success)' : 'var(--warning)';
+    p.textContent = d.done ? `${d.name} \u2714` : d.name;
+    return p;
+  });
+  body.replaceChildren(...items);
+}
+
+modal.addEventListener('show.bs.modal', async (e) => {
+  const card = e.relatedTarget;
+  const taskId = card.dataset.taskId;
+  const myId = ++detailReq;
+  const body = modal.querySelector('#taskDetails');
+
+  modal.querySelector('#taskName').textContent = card.dataset.taskName;
+
+  // show cached data instantly, otherwise a loading message
+  if (detailCache.has(taskId)) renderDetails(body, detailCache.get(taskId));
+  else body.textContent = 'Loading...';
+
+  try {
+    const data = await loadTaskDetail(taskId);
+    if (myId !== detailReq) return;
+    detailCache.set(taskId, data);
+    renderDetails(body, data);
+  } catch (err) {
+    if (myId !== detailReq) return;
+    if (!detailCache.has(taskId)) body.textContent = 'Gagal memuat detail';
+  }
+});
+
+
+async function loadTaskDetail(taskId) {
+  const res = await fetch(`${API}/tasks/${taskId}/details`)
+  if (res.status === 401) { location.href = '/index'; throw new Error('Belum login'); }
+  if (!res.ok) throw new Error('Gagal memuat detail');
+  return res.json();
+}
+
+
 
