@@ -1,0 +1,27 @@
+.task-section {
+    border: 2px solid white;
+}
+
+.task-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.5rem;
+}
+
+.task-card {
+  aspect-ratio: 2 / 1;
+  color: var(--text-primary);   /* buttons don't inherit color */
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.task-card p { margin: 0; }
+.task-owner { font-size: 0.75rem; color: var(--text-secondary); }
+.task-name  { font-weight: 600; }
+.task-percentage { font-size: 0.75rem; align-self: flex-end;}
+.task-due { margin: 0; }
+.task-due.done { color: var(--success); }
+.task-due.due { color: var(--warning); }
+.task-due.overdue { color: var(--danger); }

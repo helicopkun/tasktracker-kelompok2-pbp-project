@@ -325,10 +325,11 @@ body.no-scroll {
     background-color: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 1.25rem;
+    padding: 0.5rem;
 }
 .card-surface.is-interactive { transition: background-color 0.15s ease; }
 .card-surface.is-interactive:hover { background-color: var(--bg-card-hover); }
+
 
 /* ---------- Badge status ---------- */
 .badge-status {
@@ -346,14 +347,14 @@ body.no-scroll {
 .badge-status.is-danger  { color: var(--danger);  background: color-mix(in srgb, var(--danger) 16%, transparent); }
 
 /* ---------- Tabel (kelas "table" Bootstrap) ---------- */
-.table {
+table {
     --bs-table-bg: transparent;
     --bs-table-color: var(--text-primary);
     --bs-table-border-color: var(--border);
     --bs-table-hover-bg: var(--bg-card-hover);
     --bs-table-hover-color: var(--text-primary);
 }
-.table th {
+th, td {
     color: var(--text-secondary);
     font-size: 0.8rem;
     font-weight: 600;

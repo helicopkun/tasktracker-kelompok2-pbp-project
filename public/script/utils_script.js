@@ -1,11 +1,43 @@
 export const $ = id => document.getElementById(id);
 export const API = '/api/task-track';
-export const username = localStorage.getItem('username');
-
 
 export function tampilPesan(el, teks) { // tampilPesan($('id'), 'string pesan')
   el.textContent = teks;
 }
+
+export function makeEl(tag, className, text) {
+  const el = document.createElement(tag);
+  if (className) el.className = className;
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+
+export function dueText(due) {
+  if (!due) return 'No due date';
+  const days = Math.ceil((new Date(due) - Date.now()) / 86400000);
+  if (days < 0) return `Overdue ${-days} day(s)`;
+  if (days === 0) return 'Due today';
+  const months = Math.floor(days / 30);
+  return months ? `Due in ${months} mo, ${days % 30} d` : `Due in ${days} day(s)`;
+}
+
+export function makeProgress(done, total) {
+  const pct = total ? Math.round((done / total) * 100) : 0;
+
+  const progress = makeEl('div', 'progress');
+  progress.style.height = '6px';
+  progress.setAttribute('role', 'progressbar');
+  progress.setAttribute('aria-valuenow', pct);
+  progress.setAttribute('aria-valuemin', 0);
+  progress.setAttribute('aria-valuemax', 100);
+
+  const bar = makeEl('div', 'progress-bar');
+  bar.style.width = `${pct}%`;
+
+  progress.appendChild(bar);
+  return progress;
+}
+
 
 export function pisahWaktu(iso) {
   const d = new Date(iso);

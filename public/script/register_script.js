@@ -2,12 +2,19 @@ import { API, $, tampilPesan, themeScript, showLoading, hideLoading } from './ut
 
 themeScript();
 
+async function init() {
+  const res = await fetch(`${API}/me`);
+  if (res.ok) return (location.href = '/home.html');
+}
+init();
+
 const form = $('formRegister');
 const btn = form.querySelector('button[type="submit"]');
 
 function updateButton() {
   btn.disabled = !form.checkValidity();
 }
+
 
 form.addEventListener('input', updateButton);
 form.addEventListener('reset', () => setTimeout(updateButton));
@@ -39,8 +46,6 @@ form.addEventListener('submit', async (e) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.pesan || 'Register gagal');
 
-    localStorage.setItem('loggedIn', 'true');
-    localStorage.setItem('username', data.username);
     location.href = '/home';
   } catch (error) {
     hideLoading();
