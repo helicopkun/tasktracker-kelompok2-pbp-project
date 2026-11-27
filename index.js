@@ -1,20 +1,16 @@
 const express = require('express');
-const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 const app = express();
 
 const db = require('./database');
 const API = '/api/task-track'
 const path = require('path');
-const { error } = require('console');
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] }));
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { httpOnly: true, sameSite: 'lax', secure: false, maxAge: 1000 * 60 * 60 * 24 * 7 }
-}));
+app.use(cookieParser());
+app.set('trust proxy', 1);
 
 
 //API request
@@ -27,7 +23,13 @@ app.post(`${API}/login`, async (req, res) => {
     );
     if (!rows.length) return res.status(400).json({ pesan: 'Username atau password salah' });
 
-    req.session.userId = rows[0].id;
+    const token = jwt.sign({ uid: rows[0].id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    });
     res.json({ username });
 
   } catch (err) {
@@ -44,7 +46,13 @@ app.post(`${API}/register`, async (req, res) => {
       [username, password]
     );
 
-    req.session.userId = rows[0].id;
+    const token = jwt.sign({ uid: rows[0].id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 1000 * 60 * 60 * 24 * 30,
+    });
     res.json({ username });
     
   } catch (err) {
@@ -57,24 +65,28 @@ app.post(`${API}/register`, async (req, res) => {
 });
 
 app.post(`${API}/logout`, (req, res) => {
-    req.session.destroy(() => {
-    res.clearCookie('connect.sid');
-    res.json({ ok: true });
-  });
+  res.clearCookie('token');
+  res.json({ ok: true });
 });
 
 
 //Security Login
 function requireLogin(req, res, next) {
-  if (!req.session.userId) return res.status(401).json({ pesan: 'Belum login' });
-  next();
+  try {
+    const payload = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
+    req.userId = payload.uid;
+    next();
+  } catch {
+    res.status(401).json({ pesan: 'Belum login' });
+  }
 }
+
 //Require login API
 app.get(`${API}/me`, requireLogin, async (req, res) => {
   try {
     const { rows } = await db.query(
       'SELECT username FROM users WHERE id=$1', 
-      [req.session.userId]
+      [req.userId]
     )
     res.json(rows[0]);
 
@@ -105,7 +117,7 @@ app.get(`${API}/tasks`, requireLogin, async (req, res) => {
        WHERE ${where}
        GROUP BY t.id, tm.name
        ORDER BY t.due ASC`,
-      [req.session.userId]
+      [req.userId]
     );
     res.json(rows);
   } catch (err) {
@@ -116,6 +128,7 @@ app.get(`${API}/tasks`, requireLogin, async (req, res) => {
 
 app.get(`${API}/tasks/:taskId/details`, requireLogin, async (req, res) => {
   const taskId = Number(req.params.taskId);
+  if (!Number.isInteger(taskId)) return res.status(400).json({ pesan: 'Task id tidak valid' });
   
   try {
     const query = `
@@ -131,7 +144,7 @@ app.get(`${API}/tasks/:taskId/details`, requireLogin, async (req, res) => {
         )
       )
     ORDER BY td.done ASC`;
-    const { rows } = await db.query(query, [taskId, req.session.userId]);
+    const { rows } = await db.query(query, [taskId, req.userId]);
     res.json(rows);
 
   } catch (err) {
@@ -142,30 +155,14 @@ app.get(`${API}/tasks/:taskId/details`, requireLogin, async (req, res) => {
 
 app.get(`${API}/teams`, requireLogin, async (req, res) => {
   try {
-    query = `
+    const query = `
     SELECT t.name, t.id
     FROM teams t
     JOIN team_members tm ON t.id = tm.team_id
     WHERE tm.member_id = $1
     ORDER BY tm.joined_at DESC`
-    const { rows } = await db.query(query, [req.session.userId]);
+    const { rows } = await db.query(query, [req.userId]);
     res.json(rows);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ pesan: 'Terjadi kesalahan di server' });
-  }
-});
-
-app.get(`${API}/teams/:teamId`, requireLogin, async (req, res) => {
-  const teamId = Number(req.params.teamId);
-  try {
-    query = `
-    SELECT name
-    FROM teams
-    WHERE id = $1`
-    const { rows } = await db.query(query, [teamId]);
-    res.json(rows[0]);
 
   } catch (err) {
     console.error(err);
