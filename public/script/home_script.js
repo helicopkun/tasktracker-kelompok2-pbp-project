@@ -124,15 +124,16 @@ function displayTask(data) {
     card.dataset.taskId = d.id;
     // card.dataset.taskName = d.name;
 
+    const dueCard = makeEl('p', 'task-due', dueText(d.due));
+    
     const pct = d.total ? Math.round((d.done / d.total) * 100) : 0;
-    const due = makeEl('p', 'task-due', dueText(d.due));
-    if (pct >= 100) { due.classList.add('done'); due.textContent = `\u2714`}
-    else if (Math.ceil((new Date(d.due) - Date.now()) / 86400000) < 0) { due.classList.add('overdue'); }
-    else { due.classList.add('due'); }
+    if (pct >= 100) { dueCard.classList.add('done'); dueCard.textContent = `\u2714`}
+    else if (Math.ceil((new Date(d.due) - Date.now()) / 86400000) < 0) { dueCard.classList.add('overdue'); }
+    else { dueCard.classList.add('due'); }
     card.append(
       makeEl('p', 'task-owner', d.owner),
       makeEl('p', 'task-name', d.name),
-      due,
+      dueCard,
       makeEl('div', 'task-percentage', `${pct}%`),
       makeProgress(d.done, d.total),
 
@@ -157,7 +158,11 @@ function renderTaskData(data) {
   name.textContent = data.name;
   owner.textContent = data.owner;
   const dueDate = pisahWaktu(data.due);
-  due.textContent = `${dueText(data.due)} | ${dueDate.tanggal} ${dueDate.jam}`
+  due.textContent = `${dueText(data.due)} | ${dueDate.tanggal} ${dueDate.jam}`;
+  due.className = 'task-due modal-ver';
+  if (data.finished) { due.classList.add('done'); due.textContent = `\u2714`}
+  else if (Math.ceil((new Date(data.due) - Date.now()) / 86400000) < 0) { due.classList.add('overdue'); }
+  else { due.classList.add('due'); }
 }
 
 function renderTaskDetails(dataDetail) {
@@ -176,10 +181,17 @@ function renderTaskDetails(dataDetail) {
   body.replaceChildren(...items);
 }
 
+const btnTaskDetail = $('btnTaskDetail');
+btnTaskDetail.addEventListener('click', () => {
+  const id = btnTaskDetail.dataset.taskId;
+  if (id) window.location.href = `/task?id=${encodeURIComponent(id)}`;
+});
+
 modal.addEventListener('show.bs.modal', async (e) => {
   const card = e.relatedTarget;
   const taskId = card.dataset.taskId;
   const myId = ++reqId;
+  btnTaskDetail.dataset.taskId = taskId;
 
   // show cached data instantly, otherwise a loading message
   if (dataCache.has(taskId) && detailCache.has(taskId)) {

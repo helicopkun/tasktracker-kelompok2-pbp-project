@@ -107,7 +107,7 @@ app.get(`${API}/tasks`, requireLogin, async (req, res) => {
 
   try {
     const { rows } = await db.query(
-      `SELECT t.id, t.name, t.due, t.team_id, t.description,
+      `SELECT t.id, t.name, t.due, t.team_id, t.description, t.finished,
               COALESCE(tm.name, 'Personal') AS owner,
               COUNT(td.task_id)::int AS total,
               (COUNT(td.task_id) FILTER (WHERE td.done))::int AS done
@@ -148,11 +148,12 @@ app.get(`${API}/tasks/:taskId`, requireLogin, async (req, res) => {
       )
     ) ;`;
     const { rows } = await db.query(query, [taskId,  req.userId]);
+    if (rows.length === 0) return res.status(404).json({ pesan: 'Task tidak ditemukan' });
     res.json(rows[0])
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ pesan: err.message });
+    res.status(500).json({ pesan: 'Terjadi kesalahan server' });
   }
 });
 
@@ -161,10 +162,8 @@ app.get(`${API}/tasks/:taskId/details`, requireLogin, async (req, res) => {
   if (!Number.isInteger(taskId)) return res.status(400).json({ pesan: 'Task id tidak valid' });
   
   try {
-    const query = `
-    SELECT td.*
-    FROM task_details td
-    JOIN tasks t ON t.id = td.task_id
+    const access = await db.query(`
+    SELECT 1 FROM tasks t
     WHERE t.id = $1
       AND (
         (t.team_id IS NULL AND t.owner_id = $2)
@@ -172,14 +171,19 @@ app.get(`${API}/tasks/:taskId/details`, requireLogin, async (req, res) => {
           SELECT 1 FROM team_members tm
           WHERE tm.team_id = t.team_id AND tm.member_id = $2
         )
-      )
-    ORDER BY td.done ASC`;
-    const { rows } = await db.query(query, [taskId, req.userId]);
+      )`, [taskId, req.userId]);
+
+    if (access.rows.length === 0) return res.status(404).json({ pesan: 'Task tidak ditemukan' });
+
+    const { rows } = await db.query(
+      'SELECT * FROM task_details WHERE task_id = $1 ORDER BY done ASC',
+      [taskId]
+    );
     res.json(rows);
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ pesan: err.message });
+    res.status(500).json({ pesan: 'Terjadi kesalahan server' });
   }
 });
 
