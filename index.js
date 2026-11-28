@@ -107,7 +107,7 @@ app.get(`${API}/tasks`, requireLogin, async (req, res) => {
 
   try {
     const { rows } = await db.query(
-      `SELECT t.id, t.name, t.due, t.team_id,
+      `SELECT t.id, t.name, t.due, t.team_id, t.description,
               COALESCE(tm.name, 'Personal') AS owner,
               COUNT(td.task_id)::int AS total,
               (COUNT(td.task_id) FILTER (WHERE td.done))::int AS done
@@ -126,13 +126,43 @@ app.get(`${API}/tasks`, requireLogin, async (req, res) => {
   }
 });
 
+app.get(`${API}/tasks/:taskId`, requireLogin, async (req, res) => {
+  const taskId = Number(req.params.taskId);
+  if (!Number.isInteger(taskId)) return res.status(400).json({ pesan: 'Task id tidak valid' });
+
+  try {
+    const query = `
+    SELECT
+    t.*,
+    COALESCE(tm.name, 'Personal') AS owner
+    FROM tasks t
+    LEFT JOIN teams tm ON tm.id = t.team_id
+    WHERE t.id = $1
+    AND (
+      (t.team_id IS NULL AND t.owner_id = $2)
+      OR EXISTS (
+        SELECT 1
+        FROM team_members tm_member
+        WHERE tm_member.team_id = t.team_id
+        AND tm_member.member_id = $2
+      )
+    ) ;`;
+    const { rows } = await db.query(query, [taskId,  req.userId]);
+    res.json(rows[0])
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ pesan: err.message });
+  }
+});
+
 app.get(`${API}/tasks/:taskId/details`, requireLogin, async (req, res) => {
   const taskId = Number(req.params.taskId);
   if (!Number.isInteger(taskId)) return res.status(400).json({ pesan: 'Task id tidak valid' });
   
   try {
     const query = `
-    SELECT td.name, td.detail, td.done
+    SELECT td.*
     FROM task_details td
     JOIN tasks t ON t.id = td.task_id
     WHERE t.id = $1
@@ -149,7 +179,7 @@ app.get(`${API}/tasks/:taskId/details`, requireLogin, async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ pesan: 'Terjadi kesalahan di server' });
+    res.status(500).json({ pesan: err.message });
   }
 });
 

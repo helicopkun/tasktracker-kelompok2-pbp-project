@@ -70,15 +70,17 @@
             <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="taskName">Task name</h5>
+                        <h5 class="modal-title" id="taskName">Task..</h5>
+                        <p class="modal-sm" id="taskOwner">By..</p>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body" id="taskDetails">
+                    <div class="modal-body" id="taskDetails" style="height: 300px; overflow-y: auto;">
                         <p style="color: var(--warning);">Task details</p>
                         <p style="color: var(--success);">Task details &check;</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <p class="mb-0 me-auto" id="taskDue">Due in..</p>
+                        <button type="button" class="btn btn-primary" id="taskModalDetailBtn">View details</button>
                     </div>
                 </div>
             </div>

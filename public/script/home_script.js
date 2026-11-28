@@ -1,4 +1,4 @@
-import { API, $, tampilPesan, makeEl, dueText, makeProgress, themeScript } from './utils_script.js'
+import { API, $, tampilPesan, makeEl, dueText, makeProgress, themeScript, pisahWaktu } from './utils_script.js'
 
 themeScript();
 
@@ -122,7 +122,7 @@ function displayTask(data) {
     card.dataset.bsToggle = 'modal';
     card.dataset.bsTarget = '#taskModal';
     card.dataset.taskId = d.id;
-    card.dataset.taskName = d.name;
+    // card.dataset.taskName = d.name;
 
     const pct = d.total ? Math.round((d.done / d.total) * 100) : 0;
     const due = makeEl('p', 'task-due', dueText(d.due));
@@ -144,15 +144,30 @@ function displayTask(data) {
 }
 
 const modal = $('taskModal');
-const detailCache = new Map();
-let detailReq = 0;
+const body = modal.querySelector('#taskDetails');
+const name = modal.querySelector('#taskName');
+const owner = modal.querySelector('#taskOwner');
+const due = modal.querySelector('#taskDue');
 
-function renderDetails(body, data) {
-  if (data.length === 0) {
+const dataCache = new Map();
+const detailCache = new Map();
+let reqId = 0;
+
+function renderTaskData(data) {
+  name.textContent = data.name;
+  owner.textContent = data.owner;
+  const dueDate = pisahWaktu(data.due);
+  due.textContent = `${dueText(data.due)} | ${dueDate.tanggal} ${dueDate.jam}`
+}
+
+function renderTaskDetails(dataDetail) {
+  const body = modal.querySelector('#taskDetails');
+
+  if (dataDetail.length === 0) {
     body.textContent = 'Belum ada detail';
     return;
   }
-  const items = data.map(d => {
+  const items = dataDetail.map(d => {
     const p = document.createElement('p');
     p.style.color = d.done ? 'var(--success)' : 'var(--warning)';
     p.textContent = d.done ? `${d.name} \u2714` : d.name;
@@ -164,26 +179,38 @@ function renderDetails(body, data) {
 modal.addEventListener('show.bs.modal', async (e) => {
   const card = e.relatedTarget;
   const taskId = card.dataset.taskId;
-  const myId = ++detailReq;
-  const body = modal.querySelector('#taskDetails');
-
-  modal.querySelector('#taskName').textContent = card.dataset.taskName;
+  const myId = ++reqId;
 
   // show cached data instantly, otherwise a loading message
-  if (detailCache.has(taskId)) renderDetails(body, detailCache.get(taskId));
-  else body.textContent = 'Loading...';
+  if (dataCache.has(taskId) && detailCache.has(taskId)) {
+    renderTaskData(dataCache.get(taskId));
+    renderTaskDetails(detailCache.get(taskId));
+  } else {
+    [name,owner,due,body].forEach(e => {e.textContent = 'Loading..';});
+  }
 
   try {
-    const data = await loadTaskDetail(taskId);
-    if (myId !== detailReq) return;
-    detailCache.set(taskId, data);
-    renderDetails(body, data);
+    const data = await loadTaskId(taskId)
+    const dataDetail = await loadTaskDetail(taskId);
+    if (myId !== reqId) return;
+    
+    dataCache.set(taskId, data);
+    detailCache.set(taskId, dataDetail);
+    renderTaskData(data);
+    renderTaskDetails(dataDetail);
   } catch (err) {
-    if (myId !== detailReq) return;
-    if (!detailCache.has(taskId)) body.textContent = 'Gagal memuat detail';
+    if (myId !== reqId) return;
+    [name,owner,due,body].forEach(e => {e.textContent = 'Gagal memuat data';});
   }
 });
 
+
+async function loadTaskId(taskId) {
+  const res = await fetch(`${API}/tasks/${taskId}`)
+  if (res.status === 401) { location.href = '/index'; throw new Error('Belum login'); }
+  if (!res.ok) throw new Error('Gagal memuat detail');
+  return res.json();
+}
 
 async function loadTaskDetail(taskId) {
   const res = await fetch(`${API}/tasks/${taskId}/details`)
